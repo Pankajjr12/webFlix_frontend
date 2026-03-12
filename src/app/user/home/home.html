@@ -1,0 +1,191 @@
+<div class="dashboard-container">
+  <app-header [showRouterOutlet]="false"></app-header>
+
+  <!-- ================= Banner Slider ================= -->
+
+  <section class="banner-slider" *ngIf="!featuredLoading && featuredVideos.length > 0">
+    <div class="slider-container">
+      <div class="slides">
+        <div
+          class="slide"
+          *ngFor="let video of featuredVideos; let i = index"
+          [class.active]="i === currentSlideIndex"
+        >
+          <img class="banner-bg" [src]="getPosterUrl(video)" [alt]="video.title" />
+
+          <div class="banner-overlay"></div>
+
+          <div class="banner-content">
+            <h2 class="banner-title">
+              {{ video.title }}
+            </h2>
+
+            <p class="banner-description">
+              {{ video.description || 'Watch now!' }}
+            </p>
+
+            <div class="banner-actions">
+              <button class="play-btn" (click)="playVideo(video)">
+                <mat-icon>play_arrow</mat-icon>
+                Play
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Previous Button -->
+      <button class="slider-nav prev" (click)="prevSlide()" *ngIf="featuredVideos.length > 1">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <!-- Next Button -->
+      <button class="slider-nav next" (click)="nextSlide()" *ngIf="featuredVideos.length > 1">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+
+      <!-- Indicators -->
+      <div class="slider-indicators" *ngIf="featuredVideos.length > 1">
+        <button
+          *ngFor="let video of featuredVideos; let i = index"
+          class="indicator"
+          [class.active]="i === currentSlideIndex"
+          (click)="gotoSlide(i)"
+          [attr.aria-label]="'Go to slide ' + (i + 1)"
+        ></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Banner Loading -->
+  <div class="banner-loading" *ngIf="featuredLoading">
+    <mat-spinner diameter="60"></mat-spinner>
+  </div>
+
+  <!-- ================= Search ================= -->
+
+  <div class="search-section">
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-input">
+        <mat-icon matPrefix>search</mat-icon>
+
+        <input
+          matInput
+          placeholder="Search videos..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+          (input)="onSearch()"
+        />
+
+        <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- ================= Loading Bar ================= -->
+
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
+
+  <!-- ================= Error ================= -->
+
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+
+    <p>Failed to load videos. Please try again later.</p>
+
+    <button mat-raised-button color="primary" (click)="loadVideos(0)">
+      <mat-icon>refresh</mat-icon>
+      Retry
+    </button>
+  </div>
+
+  <!-- ================= Videos ================= -->
+
+  <div class="content-section" *ngIf="!loading && !error">
+    <section class="video-section" *ngIf="filteredVideos.length > 0">
+      <h3 class="section-title">
+        {{ searchQuery ? 'Search Results' : 'All Videos' }}
+      </h3>
+
+      <div class="video-grid">
+        <div class="video-card" *ngFor="let video of filteredVideos">
+          <div class="card-thumbnail" (click)="playVideo(video)">
+            <img [src]="getPosterUrl(video)" [alt]="video.title" class="thumbnail-img" />
+
+            <div class="thumbnail-overlay">
+              <mat-icon class="play-icon"> play_circle </mat-icon>
+            </div>
+
+            <div class="duration-badge" *ngIf="video.duration">
+              {{ formatDuration(video.duration) }}
+            </div>
+          </div>
+
+          <div class="card-content">
+            <h3 class="card-title" (click)="playVideo(video)">
+              {{ video.title }}
+            </h3>
+
+            <button
+              mat-icon-button
+              class="watch-later-icon"
+              (click)="toggleWatchList(video, $event)"
+              [class.active]="isInWatchList(video)"
+              matTooltip="isInWatchList(video) ? 'Remove from My Favorites' : 'Add to My Favorites'"
+            >
+              <mat-icon>
+                {{ isInWatchList(video) ? 'favorite' : 'favorite_border' }}
+              </mat-icon>
+            </button>
+          </div>
+
+          <p class="card-description">{{ video.description || 'No description' }}</p>
+          <div class="card-meta">
+            <div class="meta-item" *ngIf="video.year">
+              <mat-icon>calender_today</mat-icon>
+              <span>{{ video.year }}</span>
+            </div>
+            <div class="meta-item" *ngIf="video.rating">
+              <mat-icon>star</mat-icon>
+              <span>{{ video.rating }}</span>
+            </div>
+            <div class="meta-item" *ngIf="video.categories && video.categories.length > 0">
+              <mat-icon>category</mat-icon>
+              <span>{{ video.categories.join(',') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="load-more-container">
+        <div class="loading-more" *ngIf="loadingMore">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading more videos...</p>
+        </div>
+        <div
+          class="end-of-content"
+          *ngIf="!loadingMore && !hasMoreVideos && filteredVideos.length > 0"
+        >
+          <mat-icon>check_circle</mat-icon>
+          <p>You've reached the end! No more videos to load.</p>
+        </div>
+      </div>
+    </section>
+    <div *ngIf="filteredVideos.length === 0 && !searchQuery" class="empty-state">
+      <mat-icon class="empty-icon">video_library</mat-icon>
+      <h2>No videos available</h2>
+      <p>Check back later for new content!</p>
+    </div>
+    <div *ngIf="filteredVideos.length === 0 && !searchQuery" class="empty-state">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <h2>No results found</h2>
+      <p>Try adjusting your search terms</p>
+      <button mat-raised-button color="primary" (click)="clearSearch()">
+        <mat-icon>clear</mat-icon>
+        Clear Search
+      </button>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,161 @@
+<div class="player-container" (mousemove)="onMouseMove()">
+
+  <!-- Close Button -->
+  <button mat-icon-button class="close-btn" (click)="closePlayer()">
+    <mat-icon>close</mat-icon>
+  </button>
+
+  <!-- Video -->
+  <video
+    #videoPlayer
+    *ngIf="videoSrc"
+    [src]="videoSrc"
+    (loadedmetadata)="onLoadedMetadata()"
+    (timeupdate)="onTimeUpdate()"
+    (error)="onVideoError($event)"
+    (click)="onVideoClick()"
+    (play)="isPlaying = true"
+    (pause)="isPlaying = false"
+    (ended)="isPlaying = false"
+    preload="metadata"
+    playsinline
+    class="video-element">
+  </video>
+
+  <!-- Overlay Controls -->
+  <div class="player-overlay" [class.hidden]="!showControls">
+
+    <!-- Top Info -->
+    <div class="top-bar">
+      <div class="video-info">
+        <h2 class="video-title">{{ video?.title }}</h2>
+
+        <p class="video-meta">
+          <span *ngIf="video?.year">{{ video.year }}</span>
+
+          <span *ngIf="video?.rating" class="rating-badge">
+            {{ video.rating }}
+          </span>
+
+          <span *ngIf="video?.duration">
+            {{ formatTime(video.duration) }}
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Center Play Button -->
+    <div class="center-play" *ngIf="!isPlaying" (click)="togglePlay()">
+      <mat-icon>play_circle</mat-icon>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="bottom-controls">
+
+      <!-- Progress Bar -->
+      <div class="progress-container" (click)="onProgressClick($event)">
+        <div class="progress-bar">
+          <div
+            class="progress-filled"
+            [style.width.%]="progressPercent">
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Row -->
+      <div class="controls-row">
+
+        <!-- Left Controls -->
+        <div class="controls-left">
+
+          <!-- Play Pause -->
+          <button mat-icon-button (click)="togglePlay()" class="control-btn">
+            <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+          </button>
+
+          <!-- Seek Back -->
+          <button mat-icon-button (click)="seekBackward()" class="control-btn">
+            <mat-icon>replay_10</mat-icon>
+          </button>
+
+          <!-- Seek Forward -->
+          <button mat-icon-button (click)="seekForward()" class="control-btn">
+            <mat-icon>forward_10</mat-icon>
+          </button>
+
+          <!-- Volume -->
+          <div class="volume-control">
+
+            <button mat-icon-button (click)="toggleMute()" class="control-btn">
+              <mat-icon>
+                {{
+                  isMuted || volume === 0
+                    ? 'volume_off'
+                    : volume < 0.5
+                    ? 'volume_down'
+                    : 'volume_up'
+                }}
+              </mat-icon>
+            </button>
+
+            <input
+              type="range"
+              class="volume-slider"
+              [min]="0"
+              [max]="1"
+              [step]="0.01"
+              [value]="volume"
+              [style.--volume-percent]="volumePercent + '%'"
+              (input)="changeVolume($event)"
+            />
+
+          </div>
+
+          <!-- Time -->
+          <span class="time-display">
+            {{ formatTime(currentTime) }}/{{ formatTime(duration) }}
+          </span>
+
+        </div>
+
+        <!-- Right Controls -->
+        <div class="controls-right">
+
+          <!-- Fullscreen -->
+          <button mat-icon-button (click)="toggleFullScreen()" class="control-btn">
+            <mat-icon>
+              {{ isFullScreen ? 'fullscreen_exit' : 'fullscreen' }}
+            </mat-icon>
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-spinner" *ngIf="duration === 0">
+    <mat-spinner diameter="60"></mat-spinner>
+  </div>
+
+  <!-- Keyboard Shortcut Hint -->
+  <div class="keyboard-hint" *ngIf="showControls && !isPlaying">
+
+    <div class="hint-title">
+      Keyboard Shortcuts
+    </div>
+
+    <div class="hint-grid">
+      <span>Space/K</span><span>Play/Pause</span>
+      <span>←/→</span><span>Seek 10s</span>
+      <span>↑/↓</span><span>Volume</span>
+      <span>M</span><span>Mute</span>
+      <span>F</span><span>Fullscreen</span>
+      <span>Esc</span><span>Exit</span>
+    </div>
+
+  </div>
+
+</div>

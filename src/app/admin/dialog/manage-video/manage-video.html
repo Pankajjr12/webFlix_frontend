@@ -1,0 +1,391 @@
+<div class="video-form-container dialog-mode">
+
+  <!-- HEADER -->
+  <div class="form-header">
+    <div class="header-title">
+      <h1>{{ isEditMode ? 'Edit Video' : 'Upload New Video' }}</h1>
+    </div>
+  </div>
+
+  <!-- FORM CONTENT -->
+  <div class="form-content">
+    <form [formGroup]="videoForm">
+
+      <!-- MEDIA -->
+      <div class="section media-section">
+        <h2 class="section-title">
+          <mat-icon>video_library</mat-icon>
+          Media Files
+        </h2>
+
+        <div class="media-grid">
+
+          <!-- VIDEO UPLOAD -->
+          <div class="media-upload-card">
+
+            <div class="upload-header">
+              <mat-icon>movie</mat-icon>
+              <span>Video File</span>
+              <span class="required">*</span>
+            </div>
+
+            <!-- Upload progress -->
+            <div class="upload-progress"
+                 *ngIf="uploadProgress > 0 && uploadProgress < 100">
+
+              <mat-progress-bar
+                [value]="uploadProgress"
+                mode="determinate">
+              </mat-progress-bar>
+
+              <span class="progress-text">
+                Uploading... {{ uploadProgress }}%
+              </span>
+
+            </div>
+
+            <!-- Upload area -->
+            <div class="upload-area"
+                 *ngIf="!videoForm.get('src')?.value">
+
+              <input
+                type="file"
+                accept="video/*,.mkv,.mp4,.avi,.mov,.wmv,.flv,.webm,.m4v,.3gp,.mpeg,.mpg,.ogg"
+                (change)="onVideoPicked($event)"
+                id="videoInput"
+                #videoInput
+              />
+
+              <label for="videoInput" class="upload-label">
+                <mat-icon class="upload-icon">cloud_upload</mat-icon>
+                <span class="upload-text">Click to upload video</span>
+                <span class="upload-hint">
+                  All video formats supported (max 2GB)
+                </span>
+              </label>
+
+            </div>
+
+            <!-- VIDEO PREVIEW -->
+            <div class="video-preview"
+                 *ngIf="videoForm.get('src')?.value && videoPreviewUrl">
+
+              <video
+                [src]="videoPreviewUrl"
+                controls
+                controlsList="nodownload"
+                class="preview-video"
+                preload="metadata">
+              </video>
+
+              <button
+                mat-icon-button
+                class="remove-btn"
+                (click)="removeVideo()"
+                type="button">
+
+                <mat-icon>delete</mat-icon>
+
+              </button>
+
+            </div>
+
+          </div>
+
+          <!-- POSTER UPLOAD -->
+          <div class="media-upload-card">
+
+            <div class="upload-header">
+              <mat-icon>image</mat-icon>
+              <span>Poster Image</span>
+              <span class="required">*</span>
+            </div>
+
+            <div class="upload-area portrait"
+                 *ngIf="!videoForm.get('poster')?.value">
+
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onPosterPicked($event)"
+                id="posterInput"
+              />
+
+              <label for="posterInput" class="upload-label">
+
+                <mat-icon class="upload-icon">
+                  add_photo_alternate
+                </mat-icon>
+
+                <span class="upload-text">
+                  Click to upload poster
+                </span>
+
+                <span class="upload-hint">
+                  JPG, PNG (2:3 aspect ratio)
+                </span>
+
+              </label>
+
+            </div>
+
+            <!-- Poster progress -->
+            <div class="upload-progress"
+                 *ngIf="posterProgress > 0 && posterProgress < 100">
+
+              <mat-progress-bar
+                [value]="posterProgress"
+                mode="determinate">
+              </mat-progress-bar>
+
+              <span class="progress-text">
+                Uploading... {{ posterProgress }}%
+              </span>
+
+            </div>
+
+            <!-- Poster preview -->
+            <div class="poster-preview"
+                 *ngIf="videoForm.get('poster')?.value && posterPreviewUrl">
+
+              <img
+                [src]="posterPreviewUrl"
+                alt="poster"
+                class="preview-poster"
+              />
+
+              <button
+                mat-icon-button
+                class="remove-btn"
+                (click)="removePoster()"
+                type="button">
+
+                <mat-icon>delete</mat-icon>
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- BASIC INFO -->
+      <div class="section">
+
+        <h2 class="section-title">
+          <mat-icon>info</mat-icon>
+          Basic Information
+        </h2>
+
+        <div class="form-grid">
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Title</mat-label>
+
+            <input
+              matInput
+              formControlName="title"
+              required
+              placeholder="Enter video title"
+            />
+
+            <mat-icon matPrefix>title</mat-icon>
+
+            <mat-error
+              *ngIf="videoForm.get('title')?.hasError('required')">
+              Title is required
+            </mat-error>
+
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+
+            <mat-label>Description</mat-label>
+
+            <textarea
+              matInput
+              formControlName="description"
+              required
+              placeholder="Describe the video content">
+            </textarea>
+
+            <mat-icon matPrefix>description</mat-icon>
+
+            <mat-error
+              *ngIf="videoForm.get('description')?.hasError('required')">
+              Description is required
+            </mat-error>
+
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+
+            <mat-label>Year</mat-label>
+
+            <input
+              matInput
+              type="number"
+              formControlName="year"
+              required
+              placeholder="Enter year"
+            />
+
+            <mat-icon matPrefix>calendar_today</mat-icon>
+
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+
+            <mat-label>Rating</mat-label>
+
+            <mat-select formControlName="rating" required>
+
+              <mat-option
+                *ngFor="let r of ratings"
+                [value]="r">
+
+                {{ r }}
+
+              </mat-option>
+
+            </mat-select>
+
+            <mat-icon matPrefix>star</mat-icon>
+
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+
+            <mat-label>Duration</mat-label>
+
+            <input
+              matInput
+              type="number"
+              formControlName="duration"
+              readonly
+            />
+
+            <mat-icon matPrefix>schedule</mat-icon>
+
+            <mat-hint>Auto detected from video</mat-hint>
+
+          </mat-form-field>
+
+        </div>
+
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="section">
+
+        <h2 class="section-title">
+          <mat-icon>category</mat-icon>
+          Categories
+        </h2>
+
+        <mat-form-field appearance="outline" class="full-width">
+
+          <mat-label>Categories</mat-label>
+
+          <mat-select
+            formControlName="categories"
+            multiple
+            required>
+
+            <mat-option
+              *ngFor="let c of categoriesAll"
+              [value]="c">
+
+              {{ c }}
+
+            </mat-option>
+
+          </mat-select>
+
+          <mat-icon matPrefix>folder</mat-icon>
+
+        </mat-form-field>
+
+      </div>
+
+      <!-- PUBLISH -->
+      <div class="section">
+
+        <h2 class="section-title">
+          <mat-icon>settings</mat-icon>
+          Publishing Settings
+        </h2>
+
+        <div class="publish-card">
+
+          <div class="publish-info">
+
+            <mat-icon [class.active]="videoForm.value.published">
+              {{ videoForm.value.published ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+
+            <div class="publish-text">
+
+              <h3>
+                {{ videoForm.value.published ? 'Video is Published' : 'Video is Draft' }}
+              </h3>
+
+              <p>
+                {{ videoForm.value.published
+                  ? 'Video is visible to all users'
+                  : 'Video is only visible to admins'
+                }}
+              </p>
+
+            </div>
+
+          </div>
+
+          <mat-slide-toggle
+            formControlName="published"
+            color="primary">
+          </mat-slide-toggle>
+
+        </div>
+
+      </div>
+
+    </form>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="form-footer">
+
+    <div class="footer-content">
+
+      <button
+        mat-button
+        (click)="closeDialog()"
+        class="footer-cancel">
+
+        Cancel
+
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onSave()"
+        [disabled]="isSaving || videoForm.invalid"
+        class="footer-save">
+
+        <mat-icon>
+          {{ isSaving ? 'hourglass_empty' : 'save' }}
+        </mat-icon>
+
+        {{ isSaving ? 'Saving...' : 'Save Changes' }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

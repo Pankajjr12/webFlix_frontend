@@ -1,0 +1,96 @@
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../shared/services/auth-service';
+import { NotificationService } from '../shared/services/notification-service';
+import { ErrorHandlerService } from '../shared/services/error-handler-service';
+
+@Component({
+  selector: 'app-login',
+  standalone: false,
+  templateUrl: './login.html',
+  styleUrl: './login.css',
+})
+export class Login {
+
+  hide = true;
+  loginForm!: FormGroup;
+  loading = false;
+  showResendLink = false;
+  userEmail = '';
+
+  constructor(private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private notification: NotificationService,
+    private errorHandlerService: ErrorHandlerService) {
+    this.loginForm = this.fb.group(
+      {
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.required]]
+      },
+      {
+        validators: this.authService.passwordMatchValidator('password')
+      }
+    );
+  }
+
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      this.authService.redirectBasedOnRole()
+    }
+  }
+
+  submit() {
+    this.loading = true;
+    const formData = this.loginForm.value;
+    const authData = {
+      email: formData.email?.trim().toLowerCase(),
+      password: formData.password
+    }
+    this.authService.login(authData).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        this.authService.redirectBasedOnRole();
+      },
+      error: (err) => {
+        this.loading = false;
+        const errorMsg = err.error?.error || 'Login failed. Please check your credentials'
+
+        if (err.status === 403 && errorMsg.toLowerCase().includes('verify')) {
+          this.showResendLink = true;
+          this.userEmail = this.loginForm.value.email;
+        }
+        else {
+          this.showResendLink = false
+        }
+        this.notification.error(errorMsg)
+        console.log('Login error', err);
+      }
+    })
+  }
+
+  resendVerification() {
+    if (!this.userEmail) {
+      this.notification.error('Please enter your email address')
+      return;
+    }
+    this.showResendLink = false;
+    this.loading = true;
+    this.authService.resendVerficationEmail(this.userEmail).subscribe({
+      next: (response: any) => {
+        this.loading = false;
+        this.notification.success(response.message || 'Verification email sent! Please check your inbox.')
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorHandlerService.handle(err, 'Failed to send verification email. Please try again.');
+      }
+    })
+  }
+
+  forgot() {
+    this.router.navigate(['/forgot-password']);
+  }
+}

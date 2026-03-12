@@ -1,0 +1,42 @@
+<div class="auth-page">
+   
+  
+</div>
+
+
+
+<div class="auth-card" >
+    <div class="bg"></div>
+
+  
+    <div class="logo">
+      <mat-icon class="logo-icon"> movie </mat-icon>
+      <span class="logo-text"> WebFlix</span>
+    </div>
+    <!-- 🔄 Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <h2>Verifying your email...</h2>
+    </div>
+  
+    <!-- ✅ Success State -->
+    <div *ngIf="!loading && success" class="success-container">
+      <mat-icon class="success-icon">check_circle</mat-icon>
+      <h1>Email Verified!</h1>
+      <p class="message">{{ message }}</p>
+      <button mat-flat-button color="primary" class="action-btn" routerLink="/login">
+        Go to Login
+      </button>
+    </div>
+  
+    <!-- ❌ Error State -->
+    <div *ngIf="!loading && !success" class="error-container">
+      <mat-icon class="error-icon">cancel</mat-icon>
+      <h1>Verification Failed</h1>
+      <p class="message">{{ message }}</p>
+      <button mat-flat-button color="warn" class="action-btn" routerLink="/register">
+        Back to Register
+      </button>
+    </div>
+  
+  </div>

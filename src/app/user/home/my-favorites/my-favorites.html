@@ -1,0 +1,128 @@
+<div class="my-favorites-container">
+  <app-header [showRouterOutlet]="false"></app-header>
+
+  <div class="search-section">
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-input">
+        <mat-icon matPrefix>search</mat-icon>
+
+        <input
+          matInput
+          placeholder="Search videos..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="onSearch()"
+          (input)="onSearch()"
+        />
+
+        <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="loading-bar"> </mat-progress-bar>
+
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>Failed to load videos. Please try again later.</p>
+
+    <button mat-raised-button color="primary" (click)="loadVideos(0)">
+      <mat-icon>refresh</mat-icon>
+      Retry
+    </button>
+  </div>
+
+  <div class="content-section" *ngIf="!loading && !error">
+    <section class="video-section" *ngIf="filteredVideos.length > 0">
+      <h3 class="section-title">
+        {{ searchQuery ? 'Search Results' : 'My Favorites' }} ({{ filteredVideos.length }})
+      </h3>
+
+      <div class="video-grid">
+        <div class="video-card" *ngFor="let video of filteredVideos">
+          <div class="card-thumbnail" (click)="playVideo(video)">
+            <img [src]="getPosterUrl(video)" [alt]="video.title" class="thumbnail-img" />
+
+            <div class="thumbnail-overlay">
+              <mat-icon class="play-icon"> play_circle </mat-icon>
+            </div>
+
+            <div class="duration-badge" *ngIf="video.duration">
+              {{ formatDuration(video.duration) }}
+            </div>
+          </div>
+
+          <div class="card-content">
+            <h3 class="card-title" (click)="playVideo(video)">
+              {{ video.title }}
+            </h3>
+            <button
+              mat-icon-button
+              class="remove-btn"
+              (click)="toggleWatchList(video, $event)"
+              matTooltip="Remove from My Favorites"
+            >
+              <mat-icon>favorite</mat-icon>
+            </button>
+          </div>
+
+          <p class="card-description">{{ video.description || 'No description' }}</p>
+          <div class="card-meta">
+            <div class="meta-item" *ngIf="video.year">
+              <mat-icon>calender_today</mat-icon>
+              <span>{{ video.year }}</span>
+            </div>
+            <div class="meta-item" *ngIf="video.rating">
+              <mat-icon>star</mat-icon>
+              <span>{{ video.rating }}</span>
+            </div>
+            <div class="meta-item" *ngIf="video.categories && video.categories.length > 0">
+              <mat-icon>category</mat-icon>
+              <span>{{ video.categories.join(',') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="load-more-container">
+        <div class="loading-more" *ngIf="loadingMore">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Loading more videos...</p>
+        </div>
+        <div
+          class="end-of-content"
+          *ngIf="!loadingMore && !hasMoreVideos && filteredVideos.length > 0"
+        >
+          <mat-icon>check_circle</mat-icon>
+          <p>You've reached the end! No more videos to load.</p>
+        </div>
+      </div>
+    </section>
+
+    <div *ngIf="allVideos.length === 0 && !searchQuery" class="empty-state">
+      <mat-icon class="empty-icon">favorite_border</mat-icon>
+
+      <h2>Your favorites list is empty</h2>
+
+      <p>Add videos you want to watch later by clicking the heart icon</p>
+
+      <button mat-raised-button color="primary" routerLink="/home">
+        <mat-icon>home</mat-icon>
+        Browse Videos
+      </button>
+    </div>
+
+    <div
+      *ngIf="filteredVideos.length === 0 && searchQuery"
+      class="empty-state"
+    >
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <h2>No results found</h2>
+      <p>Try adjusting your search terms</p>
+      <button mat-raised-button color="primary" (click)="clearSearch()">
+        <mat-icon>clear</mat-icon>
+        Clear Search
+      </button>
+    </div>
+  </div>
+</div>

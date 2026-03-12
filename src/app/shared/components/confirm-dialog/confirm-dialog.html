@@ -1,0 +1,26 @@
+<div
+  class="confirm-dialog"
+  [class.danger]="data.type === 'danger'"
+  [class.warning]="data.type === 'warning'"
+  [class.info]="data.type === 'info'"
+>
+  <div class="dialog-icon">
+    <mat-icon *ngIf="data.type === 'danger'">error</mat-icon>
+    <mat-icon *ngIf="data.type === 'warning'">warning</mat-icon>
+    <mat-icon *ngIf="data.type === 'info'">info</mat-icon>
+  </div>
+
+  <h2 class="dialog-title">{{ data.title }}</h2>
+  <p class="dialog-message">{{ data.message }}</p>
+  <div class="dialog-actions">
+    <button mat-button class="cancel-btn" (click)="onCancel()">{{ data.cancelText }}</button>
+    <button
+      mat-button
+      class="confirm-btn"
+      [class.danger]="data.type === 'danger'"
+      (click)="onConfirm()"
+    >
+      {{ data.confirmText }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,99 @@
+<div class="signup-page">
+  <div class="bg"></div>
+  <div class="logo">
+    <mat-icon class="logo-icon"> movie </mat-icon>
+    <span class="logo-text"> WebFlix</span>
+  </div>
+
+  <mat-card class="signup-card" appearance="outlined">
+    <h1>Sign Up</h1>
+    <p class="subtitle">Create an account to start watching</p>
+    <form [formGroup]="signUpForm" (ngSubmit)="submit()" class="form">
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Full Name</mat-label>
+        <input matInput formControlName="fullName" />
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="signUpForm.get('fullName')?.hasError('required')"
+          >Full name is required</mat-error
+        >
+        <mat-error *ngIf="signUpForm.get('fullName')?.hasError('minlength')"
+          >Name must be atleast 2 characters long</mat-error
+        >
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" />
+        <mat-icon matPrefix>email</mat-icon>
+        <mat-error *ngIf="signUpForm.get('email')?.hasError('required')"
+          >Email is required</mat-error
+        >
+        <mat-error *ngIf="signUpForm.get('email')?.hasError('email')"
+          >Please enter a valid email</mat-error
+        >
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Password</mat-label>
+        <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" />
+        <mat-icon matPrefix>lock</mat-icon>
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hidePassword = !hidePassword"
+          tabIndex="-1"
+        >
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="signUpForm.get('password')?.hasError('required')"
+          >Password is required</mat-error
+        >
+        <mat-error *ngIf="signUpForm.get('password')?.hasError('minlength')"
+          >Password must be 6 characters long</mat-error
+        >
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Confirm Password</mat-label>
+        <input
+          matInput
+          [type]="hideConfirmPassword ? 'password' : 'text'"
+          formControlName="confirmPassword"
+        />
+        <mat-icon matPrefix>lock_outline</mat-icon>
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hideConfirmPassword = !hideConfirmPassword"
+          tabIndex="-1"
+        >
+          <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="signUpForm.get('confirmPassword')?.hasError('required')"
+          >Confirm Password is required</mat-error
+        >
+        <mat-error
+          *ngIf="
+            signUpForm.get('confirmPassword')?.hasError('passwordMismatch') &&
+            signUpForm.get('confirmPassword')?.hasError('required')
+          "
+          >Password do not match</mat-error
+        >
+      </mat-form-field>
+
+      <button
+        mat-flat-button
+        class="sign-up-btn"
+        type="submit"
+        [disabled]="loading || !signUpForm.valid"
+      >
+        {{ loading ? 'Creating Account...' : 'Sign Up' }}
+      </button>
+      <div class="signin">
+        <span>Already have an account</span><a routerLink="/login" class="link">Sign in now.</a>
+      </div>
+    </form>
+  </mat-card>
+</div>
