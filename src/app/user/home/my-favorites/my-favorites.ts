@@ -171,8 +171,8 @@ export class MyFavorites implements OnInit, OnDestroy {
 
   getPosterUrl(video: any) {
     return (
-      this.mediaService.getMediaUrl(video, 'image', {
-        useCache: true,
+      this.mediaService.getMediaUrl(video?.poster, 'image', {
+        useCache: true
       }) || ''
     );
   }

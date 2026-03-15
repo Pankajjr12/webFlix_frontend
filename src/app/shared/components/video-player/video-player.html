@@ -8,8 +8,8 @@
   <!-- Video -->
   <video
     #videoPlayer
-    *ngIf="videoSrc"
-    [src]="videoSrc"
+    *ngIf="videoUrl"
+    [src]="videoUrl"
     (loadedmetadata)="onLoadedMetadata()"
     (timeupdate)="onTimeUpdate()"
     (error)="onVideoError($event)"
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <!-- Center Play Button -->
+    <!-- Center Play -->
     <div class="center-play" *ngIf="!isPlaying" (click)="togglePlay()">
       <mat-icon>play_circle</mat-icon>
     </div>
@@ -52,7 +52,7 @@
     <!-- Bottom Controls -->
     <div class="bottom-controls">
 
-      <!-- Progress Bar -->
+      <!-- Progress -->
       <div class="progress-container" (click)="onProgressClick($event)">
         <div class="progress-bar">
           <div
@@ -62,23 +62,19 @@
         </div>
       </div>
 
-      <!-- Controls Row -->
       <div class="controls-row">
 
         <!-- Left Controls -->
         <div class="controls-left">
 
-          <!-- Play Pause -->
           <button mat-icon-button (click)="togglePlay()" class="control-btn">
             <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
           </button>
 
-          <!-- Seek Back -->
           <button mat-icon-button (click)="seekBackward()" class="control-btn">
             <mat-icon>replay_10</mat-icon>
           </button>
 
-          <!-- Seek Forward -->
           <button mat-icon-button (click)="seekForward()" class="control-btn">
             <mat-icon>forward_10</mat-icon>
           </button>
@@ -111,7 +107,6 @@
 
           </div>
 
-          <!-- Time -->
           <span class="time-display">
             {{ formatTime(currentTime) }}/{{ formatTime(duration) }}
           </span>
@@ -121,7 +116,6 @@
         <!-- Right Controls -->
         <div class="controls-right">
 
-          <!-- Fullscreen -->
           <button mat-icon-button (click)="toggleFullScreen()" class="control-btn">
             <mat-icon>
               {{ isFullScreen ? 'fullscreen_exit' : 'fullscreen' }}
@@ -140,7 +134,7 @@
     <mat-spinner diameter="60"></mat-spinner>
   </div>
 
-  <!-- Keyboard Shortcut Hint -->
+  <!-- Keyboard Shortcuts -->
   <div class="keyboard-hint" *ngIf="showControls && !isPlaying">
 
     <div class="hint-title">

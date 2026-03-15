@@ -271,7 +271,7 @@ export class Home implements OnInit, OnDestroy {
 
   getPosterUrl(video: any) {
     return (
-      this.mediaService.getMediaUrl(video, 'image', {
+      this.mediaService.getMediaUrl(video.poster, 'image', {
         useCache: true,
       }) || ''
     );

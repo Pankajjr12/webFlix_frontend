@@ -198,7 +198,7 @@ export class VideoList implements OnInit {
   }
 
   getPosterUrl(video: any) {
-    return this.mediaService.getMediaUrl(video, 'image', {
+    return this.mediaService.getMediaUrl(video.poster, 'image', {
       useCache: true
     });
   }

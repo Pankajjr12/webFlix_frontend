@@ -81,12 +81,19 @@ export class ManageVideo implements OnInit {
   }
 
   private loadVideoPreview(value: string | null): void {
-    this.videoPreviewUrl = this.mediaService.getMediaUrl(value, 'video');
+
+    this.videoPreviewUrl =
+      this.mediaService.getMediaUrl(value, 'video', { useCache: true });
+
     this.videoLoading = false;
     this.cdr.detectChanges();
   }
+
   private loadPosterPreview(value: string | null): void {
-    this.posterPreviewUrl = this.mediaService.getMediaUrl(value, 'image');
+
+    this.posterPreviewUrl =
+      this.mediaService.getMediaUrl(value, 'image', { useCache: true });
+
     this.posterLoading = false;
     this.cdr.detectChanges();
   }
@@ -118,60 +125,71 @@ export class ManageVideo implements OnInit {
     this.videoPreviewUrl = localBlobUrl;
     this.extractDurationFile(file);
     this.uploadProgress = 0;
-    this.mediaService.updateFile(file).subscribe({
-      next: ({ progress, uuid }) => {
+    this.mediaService.uploadFile(file).subscribe({
+
+      next: ({ progress, url }: { progress: number; url?: string }) => {
+
         this.uploadProgress = progress;
-        if (uuid) {
-          this.videoForm.patchValue({ src: uuid });
+
+        if (url) {
+          this.videoForm.patchValue({ src: url });
           this.notification.success('Video uploaded successfully');
         }
+
       },
-      error: (err) => {
-        this.notification.error('Failed to upload video. Please try again.')
+
+      error: (err: any) => {
+
+        this.notification.error('Failed to upload video');
         this.uploadProgress = 0;
-        if (this.videoPreviewUrl === localBlobUrl) {
-          URL.revokeObjectURL(localBlobUrl);
-          this.videoPreviewUrl = null;
-        }
+
       }
-    })
+
+    });
   }
 
   onPosterPicked(ev: Event) {
     const file = (ev.target as HTMLInputElement).files?.[0];
     if (!file) return;
-  
+
     if (!file.type.startsWith('image/')) {
       this.notification.error('Please select a valid image file');
       return;
     }
-  
+
     const reader = new FileReader();
-  
+
     reader.onload = (e) => {
       this.posterPreviewUrl = e.target?.result as string;
       this.cdr.detectChanges();
     };
-  
+
     // ✅ read the file here
     reader.readAsDataURL(file);
-  
+
     this.posterProgress = 0;
-  
-    this.mediaService.updateFile(file).subscribe({
-      next: ({ progress, uuid }) => {
+
+    this.mediaService.uploadFile(file).subscribe({
+
+      next: ({ progress, url }: { progress: number; url?: string }) => {
+
         this.posterProgress = progress;
-  
-        if (uuid) {
-          this.videoForm.patchValue({ poster: uuid });
+
+        if (url) {
+          this.videoForm.patchValue({ poster: url });
+          this.posterPreviewUrl = url;
           this.notification.success('Poster uploaded successfully');
         }
+
       },
-      error: () => {
-        this.notification.error('Failed to upload poster. Please try again.');
+
+      error: (err: any) => {
+
+        this.notification.error('Failed to upload poster');
         this.posterProgress = 0;
-        this.posterPreviewUrl = null;
+
       }
+
     });
   }
 

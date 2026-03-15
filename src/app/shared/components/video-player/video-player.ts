@@ -9,11 +9,10 @@ import {
 
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UtilityService } from '../../services/utility-service';
-import { MediaService } from '../../services/media-service';
 
 @Component({
   selector: 'app-video-player',
-  standalone: false,
+  standalone:false,
   templateUrl: './video-player.html',
   styleUrls: ['./video-player.css']
 })
@@ -34,222 +33,69 @@ export class VideoPlayer implements OnInit, OnDestroy {
 
   controlsTimeout: any;
 
-  private boundFullScreenHandler!: () => void;
-  private boundKeydownHandler!: (event: KeyboardEvent) => void;
-
-  private playPromise: Promise<void> | null = null;
-
-  authenticatedVideoUrl: string | null = null;
+  videoUrl: string | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<VideoPlayer>,
     @Inject(MAT_DIALOG_DATA) public video: any,
-    public utilityService: UtilityService,
-    private mediaService: MediaService
-  ) {
-
-    this.boundFullScreenHandler = this.onFullscreenChange.bind(this);
-    this.boundKeydownHandler = this.onKeyDown.bind(this);
-
-    this.loadAuthenticatedVideo();
-  }
+    public utilityService: UtilityService
+  ) {}
 
   ngOnInit(): void {
-
+    this.loadVideo();
     this.startControlsTimer();
-
-    document.addEventListener(
-      'fullscreenchange',
-      this.boundFullScreenHandler
-    );
-
-    document.addEventListener(
-      'keydown',
-      this.boundKeydownHandler
-    );
-
-    this.dialogRef.beforeClosed().subscribe(() => {
-      this.cleanup();
-    });
   }
 
   ngOnDestroy(): void {
     this.cleanup();
   }
 
-  // ---------------- VIDEO LOAD ----------------
+  private loadVideo(): void {
 
-  private loadAuthenticatedVideo(): void {
+    const src = this.video?.src || this.video?.videoUrl;
 
-    if (!this.video?.src) {
-      console.error("Video src missing");
+    if (!src) {
+      console.error('Video source missing', this.video);
       return;
     }
 
-    this.authenticatedVideoUrl =
-      this.mediaService.getMediaUrl(this.video.src, 'video');
+    this.videoUrl = src;
 
-    console.log("VIDEO URL:", this.authenticatedVideoUrl);
+    console.log("VIDEO URL:", this.videoUrl);
   }
 
-  // ---------------- CLEANUP ----------------
-
   private cleanup(): void {
-
-    if (this.controlsTimeout) {
-      clearTimeout(this.controlsTimeout);
-      this.controlsTimeout = null;
-    }
-
-    document.removeEventListener(
-      'fullscreenchange',
-      this.boundFullScreenHandler
-    );
-
-    document.removeEventListener(
-      'keydown',
-      this.boundKeydownHandler
-    );
 
     const video = this.videoElement?.nativeElement;
 
     if (video) {
-
-      try {
-        video.pause();
-      } catch {}
-
+      video.pause();
       video.currentTime = 0;
       video.removeAttribute('src');
       video.load();
-
-      this.isPlaying = false;
-    }
-
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
     }
   }
-
-  // ---------------- KEYBOARD CONTROLS ----------------
-
-  onKeyDown(event: KeyboardEvent): void {
-
-    if (
-      event.target instanceof HTMLInputElement ||
-      event.target instanceof HTMLTextAreaElement
-    ) return;
-
-    switch (event.key.toLowerCase()) {
-
-      case ' ':
-      case 'k':
-        event.preventDefault();
-        this.togglePlay();
-        break;
-
-      case 'arrowleft':
-        event.preventDefault();
-        this.seekBackward();
-        break;
-
-      case 'arrowright':
-        event.preventDefault();
-        this.seekForward();
-        break;
-
-      case 'arrowup':
-        event.preventDefault();
-        this.increaseVolume();
-        break;
-
-      case 'arrowdown':
-        event.preventDefault();
-        this.decreaseVolume();
-        break;
-
-      case 'm':
-        event.preventDefault();
-        this.toggleMute();
-        break;
-
-      case 'f':
-        event.preventDefault();
-        this.toggleFullScreen();
-        break;
-
-      case 'escape':
-        if (document.fullscreenElement) {
-          document.exitFullscreen();
-        } else {
-          this.closePlayer();
-        }
-        break;
-    }
-  }
-
-  // ---------------- PLAY CONTROLS ----------------
 
   togglePlay(): void {
 
     const video = this.videoElement?.nativeElement;
     if (!video) return;
 
-    this.pauseAllOtherVideos(video);
-
     if (video.paused) {
-
-      if (!this.playPromise) {
-
-        this.playPromise = video.play();
-
-        if (this.playPromise !== undefined) {
-
-          this.playPromise
-            .then(() => {
-              this.isPlaying = true;
-            })
-            .catch(() => {
-              // Ignore play interruption errors
-            })
-            .finally(() => {
-              this.playPromise = null;
-            });
-        }
-      }
-
+      video.play();
+      this.isPlaying = true;
     } else {
-
-      if (this.playPromise) {
-        this.playPromise.catch(() => {});
-        this.playPromise = null;
-      }
-
       video.pause();
       this.isPlaying = false;
     }
   }
-
-  private pauseAllOtherVideos(current: HTMLVideoElement): void {
-
-    const videos = document.querySelectorAll('video');
-
-    videos.forEach((v: any) => {
-      if (v !== current && !v.paused) {
-        v.pause();
-      }
-    });
-  }
-
-  // ---------------- SEEK ----------------
 
   seekForward(): void {
 
     const video = this.videoElement?.nativeElement;
     if (!video) return;
 
-    video.currentTime =
-      Math.min(video.duration, video.currentTime + 10);
+    video.currentTime = Math.min(video.duration, video.currentTime + 10);
   }
 
   seekBackward(): void {
@@ -257,11 +103,8 @@ export class VideoPlayer implements OnInit, OnDestroy {
     const video = this.videoElement?.nativeElement;
     if (!video) return;
 
-    video.currentTime =
-      Math.max(0, video.currentTime - 10);
+    video.currentTime = Math.max(0, video.currentTime - 10);
   }
-
-  // ---------------- VOLUME ----------------
 
   toggleMute(): void {
 
@@ -272,43 +115,48 @@ export class VideoPlayer implements OnInit, OnDestroy {
     this.isMuted = video.muted;
   }
 
+  onMouseMove(): void {
+    this.startControlsTimer();
+  }
+
+  onVideoClick(): void {
+    this.togglePlay();
+  }
+
+  onVideoError(event: Event): void {
+    console.error("Video playback error:", event);
+  }
+
+  onProgressClick(event: MouseEvent): void {
+
+    const progressContainer = event.currentTarget as HTMLElement;
+    const rect = progressContainer.getBoundingClientRect();
+
+    const clickX = event.clientX - rect.left;
+    const width = rect.width;
+
+    const percentage = clickX / width;
+
+    const video = this.videoElement?.nativeElement;
+
+    if (video && this.duration) {
+      video.currentTime = percentage * this.duration;
+    }
+  }
+
   changeVolume(event: Event): void {
 
     const target = event.target as HTMLInputElement;
     const value = parseFloat(target.value);
 
-    this.setVolume(value);
-    this.isMuted = value === 0;
-  }
-
-  increaseVolume(): void {
-
-    const newVolume =
-      Math.min(1, this.volume + 0.1);
-
-    this.setVolume(newVolume);
-    this.isMuted = false;
-  }
-
-  decreaseVolume(): void {
-
-    const newVolume =
-      Math.max(0, this.volume - 0.1);
-
-    this.setVolume(newVolume);
-    this.isMuted = newVolume === 0;
-  }
-
-  private setVolume(value: number): void {
-
     const video = this.videoElement?.nativeElement;
-    if (!video) return;
 
-    video.volume = value;
+    if (video) {
+      video.volume = value;
+    }
+
     this.volume = value;
   }
-
-  // ---------------- FULLSCREEN ----------------
 
   toggleFullScreen(): void {
 
@@ -317,64 +165,30 @@ export class VideoPlayer implements OnInit, OnDestroy {
 
     if (!document.fullscreenElement) {
       container?.requestFullscreen();
+      this.isFullScreen = true;
     } else {
       document.exitFullscreen();
+      this.isFullScreen = false;
     }
   }
-
-  onFullscreenChange(): void {
-    this.isFullScreen = !!document.fullscreenElement;
-  }
-
-  // ---------------- VIDEO EVENTS ----------------
 
   onLoadedMetadata(): void {
 
     const video = this.videoElement?.nativeElement;
-    if (!video) return;
 
-    this.duration = video.duration;
-  }
-  onVideoError(event: any) {
-    console.error("Video load error", event);
+    if (video) {
+      this.duration = video.duration;
+    }
   }
 
   onTimeUpdate(): void {
 
     const video = this.videoElement?.nativeElement;
-    if (!video) return;
 
-    this.currentTime = video.currentTime;
+    if (video) {
+      this.currentTime = video.currentTime;
+    }
   }
-
-  onMouseMove(): void {
-
-    this.showControls = true;
-    this.startControlsTimer();
-  }
-
-  onVideoClick(): void {
-    this.togglePlay();
-  }
-
-  onProgressClick(event: MouseEvent): void {
-
-    const video = this.videoElement?.nativeElement;
-    if (!video || !this.duration) return;
-
-    const bar = event.currentTarget as HTMLElement;
-    const rect = bar.getBoundingClientRect();
-
-    const percent =
-      (event.clientX - rect.left) / rect.width;
-
-    const newTime = percent * this.duration;
-
-    video.currentTime = newTime;
-    this.currentTime = newTime;
-  }
-
-  // ---------------- CONTROL VISIBILITY ----------------
 
   startControlsTimer(): void {
 
@@ -393,22 +207,12 @@ export class VideoPlayer implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  // ---------------- CLOSE ----------------
-
   closePlayer(): void {
     this.dialogRef.close();
   }
 
-  // ---------------- UTILITIES ----------------
-
   formatTime(seconds: number): string {
     return this.utilityService.formatDuration(seconds);
-  }
-
-  // ---------------- GETTERS ----------------
-
-  get videoSrc(): string | null {
-    return this.authenticatedVideoUrl;
   }
 
   get progressPercent(): number {
